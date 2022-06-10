@@ -1,0 +1,67 @@
+//req.params:
+//req.query:
+//req.body:
+
+require('dotenv').config();
+
+const express = require('express');
+const app = express();
+
+const mongoose = require('mongoose');
+mongoose.connect(process.env.CONNECTIONSTRING, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        app.emit('pronto');
+    })
+        .catch(e => console.log(e));
+   
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
+const flash = require('connect-flash');
+
+const routes = require('./routes')
+const path = require('path')
+const { middlewareGlobal, outroMiddleware } = require('./src/middlewares/middleware.js')
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.resolve(__dirname, 'public')));
+
+const sessionOptions = session({
+    secret: 'dgd58gd225h12f5h125f5hf5',
+    store: MongoStore.create({ mongoUrl: process.env.CONNECTIONSTRING }),
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true
+    }
+});
+
+app.use(sessionOptions);
+app.use(flash());
+
+app.set('views', path.resolve(__dirname, 'src', 'views'));
+app.set('view engine', 'ejs')
+
+//Meus middlewares proprios
+
+app.use(middlewareGlobal);
+app.use(outroMiddleware);
+app.use(routes);
+
+app.on('pronto', () => {
+    app.listen(3000, () => {
+        console.log('Acessar http://localhost:3000');
+        console.log('Servidor executando na porta 3000');
+    });
+    
+})
+
+//        Criar   ler   atualizar  apagar
+//CRUD -> CREATE, READ, UPDATE,    DELETE
+//        POST    GET   PUT        DELETE   
+
+//Instalar express: npm install express
+//Instalar nodemon: npm install nodemon --save-dev
+//Opcao 1: Rodar o nodemon: npx nodemon server.js
+//Opcao 2: colocar: "start": "nodemon server.js" no script no package.json e dps usar: npm start
