@@ -1,2 +1,1 @@
-const x = "serso"
-console.log(x)
+console.log("gerson")
